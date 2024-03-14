@@ -1,0 +1,13 @@
+spring:
+  sql:
+    init:
+      platform: postgres
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://portfolio-db-1.cp40wgycqsw2.ap-southeast-2.rds.amazonaws.com:5432/portfolio?currentSchema=ca
+    username: postgres
+    password: AQ!DE#sw2
+  security:
+    user:
+      name: maja-admin
+      password: secretsplease
