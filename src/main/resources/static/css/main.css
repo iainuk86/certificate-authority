@@ -1,0 +1,44 @@
+html, body {
+    margin: 0;
+    height: 95%;
+    font-size: 15px;
+    text-align: center;
+    background-image: url("/images/bg.png");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+.title h1 {
+    text-transform: uppercase;
+    color: #c5ced7;
+
+    display: grid;
+    grid-template-columns: 1fr max-content 1fr;
+    grid-template-rows: 27px 0;
+    grid-gap: 20px;
+    align-items: center;
+}
+
+.title h1:after,.title h1:before {
+    content: " ";
+    display: block;
+    border-bottom: 1px solid #ffffff;
+    border-top: 1px solid #ffffff;
+    height: 0.5rem;
+    background-color: #1e0909;
+}
+
+#login-card-group {
+    width: 75rem;
+    height: 35rem;
+    margin: 0 auto;
+}
+
+#mainframe-img {
+    height: 100%;
+}
+
+.error-msg {
+    color: #ee1818;
+}
