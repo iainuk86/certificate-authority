@@ -10,4 +10,4 @@ spring:
   security:
     user:
       name: maja-admin
-      password: secretsplease
+      password: 123
