@@ -29,16 +29,59 @@ html, body {
     background-color: #1e0909;
 }
 
+.error-msg {
+    color: #ee1818;
+}
+
+#error-popup {
+    position: absolute;
+    top: 7rem;
+    right: 5rem;
+    width: fit-content;
+}
+
 #login-card-group {
     width: 75rem;
     height: 35rem;
     margin: 0 auto;
 }
 
-#mainframe-img {
+#index-grid {
     height: 100%;
+    display: grid;
+    grid-template: 1fr 3fr 6fr / 1fr 1fr;
+    justify-items: center;
 }
 
-.error-msg {
-    color: #ee1818;
+#index-title {
+    grid-area: 1 / 1 / 2 / 3;
+}
+
+#index-desc {
+    grid-area: 2 / 1 / 3 / 2;
+    color: white;
+}
+
+#index-endpoint {
+    grid-area: 2 / 2 / 3 / 3;
+    color: white;
+}
+
+#index-cert-table {
+    grid-area: 3 / 1 / 4 / 3;
+    width: 100%;
+    font-size: 0.9rem;
+}
+
+.img-download {
+    width: 5rem;
+}
+
+.img-delete {
+    width: 1.6rem;
+    transform: translateY(2px);
+}
+
+#pem-textarea {
+    font-size: 0.8rem;
 }

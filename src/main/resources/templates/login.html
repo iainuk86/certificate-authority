@@ -17,7 +17,7 @@
             </div>
             <div id="login-card-group" class="card-group shadow">
                 <div class="card">
-                    <img id="mainframe-img" class="card-img" src="/images/mainframe.png" alt="Secret mainframe">
+                    <img class="card-img h-100" src="/images/mainframe.png" alt="Secret mainframe">
                 </div>
                 <div class="card">
                     <img class="card-img-top mt-1" src="/images/restricted.png" alt="Restricted">
@@ -30,15 +30,15 @@
                             <div class="mx-auto my-4 d-flex justify-content-around">
                                 <input type="hidden" name="username" value="maja-admin">
                                 <label for="inputPassword" class="col-form-label">Password:</label>
-                                <input type="password" id="inputPassword" name="password" class="form-control d-inline-block w-50">
+                                <input type="password" id="inputPassword" name="password"
+                                       class="form-control d-inline-block w-50" autofocus
+                                >
                             </div>
 
-                            <button type="submit" class="btn btn-primary w-25 mt-3">Enter</button>
+                            <button type="submit" class="btn btn-info w-25 mt-3">Enter</button>
                         </form>
 
-                        <div th:if="${param.error}" class="mt-2 error-msg">
-                            Invalid password
-                        </div>
+                        <div th:if="${param.error}" class="mt-2 error-msg">Invalid password</div>
                     </div>
                 </div>
             </div>
