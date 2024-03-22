@@ -1,8 +1,8 @@
 FROM openjdk:21
 
 WORKDIR /app
-COPY ./build/libs/secret-1.0.0.jar /app
+COPY ./build/libs/secret-*.jar /app/secret.jar
 
 EXPOSE 6789
 
-CMD ["java", "-jar", "secret-1.0.0.jar"]
+CMD ["java", "-jar", "secret.jar"]

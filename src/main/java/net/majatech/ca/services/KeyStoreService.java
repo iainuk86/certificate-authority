@@ -25,7 +25,7 @@ import java.util.UUID;
 @Service
 public class KeyStoreService {
 
-    private static final String KEYSTORE_ROOT_DIRECTORY = "C:\\Users\\iainu\\IdeaProjects\\ca\\src\\main\\resources\\keystores\\";
+    private static final String KEYSTORE_ROOT_DIRECTORY = "C:\\Users\\iainu\\IdeaProjects\\ca\\src\\main\\resources\\clients\\";
 
     private final KeyStoreInfoRepository keyStoreInfoRepository;
     private final ClientCertificateSigner clientCertificateSigner;
