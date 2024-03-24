@@ -147,7 +147,7 @@ public class KeyStoreService {
         return keyStoreInfoRepository.findAll();
     }
 
-    private static String getKeyStorePath(UUID keyStoreId) {
+    public static String getKeyStorePath(UUID keyStoreId) {
         return KEYSTORE_ROOT_DIRECTORY + keyStoreId + ".p12";
     }
 }
