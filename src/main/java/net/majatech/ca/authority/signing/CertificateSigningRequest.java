@@ -17,14 +17,12 @@ import java.security.PublicKey;
 public class CertificateSigningRequest {
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
 
-    private final PublicKey publicKey;
-    private final PrivateKey privateKey;
+    private final KeyPair keyPair;
     private final PKCS10CertificationRequest csr;
     private final DistinguishedName distinguishedName;
 
     private CertificateSigningRequest(KeyPair keyPair, PKCS10CertificationRequest csr, DistinguishedName dn) {
-        this.publicKey = keyPair.getPublic();
-        this.privateKey = keyPair.getPrivate();
+        this.keyPair = keyPair;
         this.csr = csr;
         this.distinguishedName = dn;
     }
@@ -40,17 +38,21 @@ public class CertificateSigningRequest {
             PKCS10CertificationRequest csr = requestBuilder.build(signer);
 
             return new CertificateSigningRequest(keyPair, csr, dn);
-        } catch (final OperatorCreationException e) {
-            throw new CaException(e.getMessage());
+        } catch (OperatorCreationException e) {
+            throw new CaException(e.getMessage(), e);
         }
     }
 
+    public KeyPair getKeyPair() {
+        return keyPair;
+    }
+
     public PublicKey getPublicKey() {
-        return publicKey;
+        return keyPair.getPublic();
     }
 
     public PrivateKey getPrivateKey() {
-        return privateKey;
+        return keyPair.getPrivate();
     }
 
     public DistinguishedName getDistinguishedName() {

@@ -60,7 +60,7 @@ public abstract class CertificateSigner {
             cert.checkValidity();
             cert.verify(issuerInfo.keyPair().getPublic());
 
-            return CertificateHolder.with(cert, issuerInfo);
+            return CertificateHolder.with(cert, csr.getKeyPair(), issuerInfo);
         } catch (Exception e) {
             throw new CaException(e.getMessage());
         }
