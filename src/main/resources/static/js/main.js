@@ -1,4 +1,4 @@
-function getSelectedClientCertificate() {
+function fetchWithSelectedCertificate() {
     let selectedCert = document.querySelector( 'input[name="client-cert-radio"]:checked');
 
     if (selectedCert == null) {
@@ -6,6 +6,36 @@ function getSelectedClientCertificate() {
         return;
     }
 
-    let secretUrl = '/api/secret/' + selectedCert.value
-    fetch(secretUrl).then(resp => console.log(resp.text()))
+    fetchSecret(selectedCert)
+        .then(result => displayResult(result))
+}
+
+async function fetchSecret(selectedCert) {
+    return await fetch('/api/secret/' + selectedCert.value)
+        .then(response => {
+            if (response.status !== 200) {
+                throw new Error("Request failed!")
+            }
+
+            // The server will respond with a String response body if the call is successful
+            return response.text()
+        }).then(text => {
+            return {
+                message: text,
+                color: "green"
+            }
+        }).catch((err) => {
+            console.log(err)
+            return {
+                message: "Denied! Try again",
+                color: "red"
+            }
+        })
+}
+
+function displayResult(result) {
+    let secret = document.getElementById('secret')
+    secret.textContent = result.message
+    secret.style.color = result.color
+    secret.style.display = "block"
 }

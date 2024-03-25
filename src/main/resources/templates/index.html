@@ -18,16 +18,25 @@
             </div>
             <!-- Left side - description -->
             <div id="index-desc" class="container">
-                <div class="card mb-5 h-100">
-                    <h2>Description</h2>
+                <div class="card h-100">
+                    <div class="container p-4">
+                        <p>The button to the right attempts to fetch secrets from an endpoint hosted elsewhere.</p>
+                        <p>This endpoint only responds to client certificates that are signed by our secret CA.</p>
+                        <p>Select an appropriate certificate from below and attempt to uncover the secrets.</p>
+                        <p>Creating a certificate through the CSR option will sign the certificate with our CA.</p>
+                        <p>Feel free to upload your own certificates to test how the endpoint will respond.</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Right side - endpoint animation -->
-            <div id="index-endpoint" class="container">
-                <div class="card mb-5 h-100">
-                    <h2>Endpoint</h2>
-                    <button onclick="getSelectedClientCertificate()" class="btn btn-primary">Test Button</button>
+            <div id="index-endpoint" class="container d-flex">
+                <div>
+                    <h2>Select a certificate from the table below</h2>
+                </div>
+                <h5 id="secret"></h5>
+                <div>
+                    <button onclick="fetchWithSelectedCertificate()" class="btn btn-success">Fetch Secrets</button>
                 </div>
             </div>
 

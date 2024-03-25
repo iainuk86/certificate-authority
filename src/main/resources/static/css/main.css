@@ -64,6 +64,9 @@ html, body {
 
 #index-endpoint {
     grid-area: 2 / 2 / 3 / 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
     color: white;
 }
 
@@ -84,4 +87,9 @@ html, body {
 
 #pem-textarea {
     font-size: 0.8rem;
+}
+
+#secret {
+    display: none;
+    font-size: 1.15rem;
 }
