@@ -1,5 +1,7 @@
 package net.majatech.ca.controller.api.model;
 
+import jakarta.validation.constraints.NotNull;
+
 /**
  * Model class which maps to all HTML inputs for the CSR / 'Create' form
  */
@@ -11,7 +13,10 @@ public class CsrForm {
     private String organization;
     private String organizationalUnit;
 
+    @NotNull
     private String keyStorePass;
+
+    @NotNull
     private String keyStoreAlias;
 
     public String getCommonName() {

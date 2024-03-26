@@ -43,9 +43,10 @@ public class KeyStoreService {
      * <br><br>
      * Saves the KeyStore metadata into the database and saves the KeyStore itself to the local file system
      * @param csrForm The CSR fields received from the UI
+     * @return The ID of the generated KeyStore
      */
     @Transactional
-    public void generateKeyStoreFromCsr(CsrForm csrForm) {
+    public String generateKeyStoreFromCsr(CsrForm csrForm) {
         // Create CSR from UI values
         CertificateSigningRequest csr = createCsr(csrForm);
 
@@ -65,6 +66,8 @@ public class KeyStoreService {
         // Save KeyStore to file system for easy retrieval and usage
         saveKeyStoreToFileSystem(
                 certHolder.generateKeyStore(csrForm.getKeyStorePass(), csrForm.getKeyStoreAlias()), keyStoreInfo);
+
+        return keyStoreInfo.keyStoreId.toString();
     }
 
     /**
@@ -75,9 +78,10 @@ public class KeyStoreService {
      * @param file The uploaded KeyStore
      * @param pass The KeyStore password
      * @param alias The alias of the key entry/certificate to save
+     * @return The ID of the uploaded KeyStore
      */
     @Transactional
-    public void saveUploadedKeyStore(MultipartFile file, String pass, String alias) {
+    public String saveUploadedKeyStore(MultipartFile file, String pass, String alias) {
         try {
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(file.getInputStream(), pass.toCharArray());
@@ -91,6 +95,8 @@ public class KeyStoreService {
             // Save the KeyStore
             KeyStoreInfo keyStoreInfo = KeyStoreInfo.from(x509Certificate, pass, alias);
             saveKeyStore(keyStore, keyStoreInfo);
+
+            return keyStoreInfo.keyStoreId.toString();
         } catch (CertificateExpiredException | CertificateNotYetValidException e) {
             throw new CaException("Certificate is not valid. Please check the expiry", e);
         } catch (Exception e) {
