@@ -44,7 +44,7 @@ public class CertificateHolderTest {
     }
 
     @Test
-    public void testGenerateKeyStore() throws Exception {
+    public void testKeyStoreIsSuccessfullyGenerated() throws Exception {
         CertificateSigningRequest csr = testUtility.getDefaultTestCsr();
         CertificateHolder certificateHolder = clientCertificateSigner.sign(csr);
         KeyStore generatedKeyStore = certificateHolder.generateKeyStore("testing", "test-alias");
@@ -55,7 +55,7 @@ public class CertificateHolderTest {
 
         Certificate certificate = generatedKeyStore.getCertificate("test-alias");
         assertThat(certificate).isInstanceOf(X509Certificate.class);
-        assertThat(certificate.getPublicKey()).isEqualTo(csr.getPublicKey());
+        assertThat(certificate.getPublicKey()).isEqualTo(certificateHolder.getKeyPair().getPublic());
 
         X509Certificate x509 = (X509Certificate) certificate;
         x509.checkValidity();

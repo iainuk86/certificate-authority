@@ -5,6 +5,8 @@ import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.springframework.util.StringUtils;
 
+import java.util.Objects;
+
 /**
  * Class to represent the Distinguished Name for either a certificate subject or issuer
  */
@@ -135,5 +137,25 @@ public class DistinguishedName {
         public DistinguishedName build() {
             return new DistinguishedName(commonName, locality, state, country, organization, organizationalUnit);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DistinguishedName that = (DistinguishedName) o;
+        return Objects.equals(commonName, that.commonName)
+                && Objects.equals(locality, that.locality)
+                && Objects.equals(state, that.state)
+                && Objects.equals(country, that.country)
+                && Objects.equals(organization, that.organization)
+                && Objects.equals(organizationalUnit, that.organizationalUnit);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(commonName, locality, state, country, organization, organizationalUnit);
     }
 }
