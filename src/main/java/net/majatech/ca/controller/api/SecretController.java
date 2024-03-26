@@ -2,6 +2,7 @@ package net.majatech.ca.controller.api;
 
 import net.majatech.ca.services.SecretService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -22,7 +23,7 @@ public class SecretController {
      * @param keyStoreId The ID of the KeyStore to use when creating the SSLContext for connection to the secret API
      * @return The secret in text format in the request body. Errors are handled by the JS for better demonstration
      */
-    @GetMapping(value = "/{keyStoreId}")
+    @GetMapping(value = "/{keyStoreId}", produces = MediaType.TEXT_PLAIN_VALUE)
     public String fetchSecrets(@PathVariable("keyStoreId") UUID keyStoreId) {
         return secretService.fetchSecrets(keyStoreId);
     }

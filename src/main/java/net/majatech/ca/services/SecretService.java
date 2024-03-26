@@ -58,21 +58,7 @@ public class SecretService {
         // Create the SSL Context
         SSLContext sslContext = loadSslContext(kmf, tmf);
 
-        // Create HTTP Client with the SSL Context
-        try (HttpClient httpClient = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_1_1)
-                .sslContext(sslContext)
-                .build()) {
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(caSettings.getSecretUrl()))
-                    .GET()
-                    .build();
-
-            return httpClient.send(request, HttpResponse.BodyHandlers.ofString()).body();
-        } catch (Exception e) {
-            throw new CaException(e.getMessage(), e);
-        }
+        return sendRequestWithSslContext(sslContext);
     }
 
     /**
@@ -138,6 +124,29 @@ public class SecretService {
             sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
 
             return sslContext;
+        } catch (Exception e) {
+            throw new CaException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Send a request to the secret endpoint using the provided SSLContext
+     * @param sslContext The SSLContext to use in the request
+     * @return The secret in String form. If any error occurs an exception is thrown and is handled by the UI. This
+     * is simplified purely for demonstration purposes.
+     */
+    public String sendRequestWithSslContext(SSLContext sslContext) {
+        try (HttpClient httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .sslContext(sslContext)
+                .build()) {
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(caSettings.getSecretUrl()))
+                    .GET()
+                    .build();
+
+            return httpClient.send(request, HttpResponse.BodyHandlers.ofString()).body();
         } catch (Exception e) {
             throw new CaException(e.getMessage(), e);
         }
