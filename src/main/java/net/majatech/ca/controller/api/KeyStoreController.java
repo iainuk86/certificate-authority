@@ -33,9 +33,10 @@ public class KeyStoreController {
      */
     @PostMapping(value="/csr", consumes = APPLICATION_FORM_URLENCODED_VALUE, produces = TEXT_PLAIN_VALUE)
     public String generateKeyStoreFromCsr(@Valid CsrForm csrForm, HttpServletResponse resp) throws IOException {
+        String keyStoreId = keyStoreService.generateKeyStoreFromCsr(csrForm);
         resp.sendRedirect("/");
 
-        return keyStoreService.generateKeyStoreFromCsr(csrForm);
+        return keyStoreId;
     }
 
     /**
@@ -49,9 +50,10 @@ public class KeyStoreController {
     @PostMapping(value = "/upload", consumes = MULTIPART_FORM_DATA_VALUE, produces = TEXT_PLAIN_VALUE)
     public String uploadKeyStore(@RequestParam MultipartFile ks, @RequestParam String pass, @RequestParam String alias,
                                HttpServletResponse resp) throws IOException {
+        String keyStoreId = keyStoreService.saveUploadedKeyStore(ks, pass, alias);
         resp.sendRedirect("/");
 
-        return keyStoreService.saveUploadedKeyStore(ks, pass, alias);
+        return keyStoreId;
     }
 
     /**
@@ -75,8 +77,7 @@ public class KeyStoreController {
      */
     @PostMapping(value = "/delete/{ksId}")
     public void deleteKeyStore(@PathVariable("ksId") UUID ksId, HttpServletResponse resp) throws IOException {
-        resp.sendRedirect("/");
-
         keyStoreService.deleteKeyStore(ksId);
+        resp.sendRedirect("/");
     }
 }
