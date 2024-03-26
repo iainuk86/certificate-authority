@@ -1,5 +1,6 @@
 package net.majatech.ca.services;
 
+import net.majatech.ca.config.CaSettings;
 import net.majatech.ca.data.entity.KeyStoreInfo;
 import net.majatech.ca.data.repo.KeyStoreInfoRepository;
 import net.majatech.ca.exceptions.CaException;
@@ -23,18 +24,29 @@ import java.util.UUID;
 @Service
 public class SecretService {
 
-    private static final String SECRET_URL = "https://ca.majatech.net:6789/api/secrets";
-
     private final KeyStoreInfoRepository keyStoreInfoRepository;
+    private final CaSettings caSettings;
 
     @Autowired
-    public SecretService(KeyStoreInfoRepository keyStoreInfoRepository) {
+    public SecretService(KeyStoreInfoRepository keyStoreInfoRepository, CaSettings caSettings) {
         this.keyStoreInfoRepository = keyStoreInfoRepository;
+        this.caSettings = caSettings;
     }
 
+    /**
+     * Main method used for attempting to fetch the protected data
+     * <br><br>
+     * Creates the SSLContext using the desired KeyStore and attempts connection. The JDK built-in HttpClient library
+     * is used to avoid including any other dependencies, but any HttpClient can be used. Also tested with OkHttpClient
+     * @param keyStoreId The ID of the KeyStore to use when creating the SSLContext
+     * @return The protected data string if connection is successful. If not, the JS catches any exception or error
+     * to display a generic error message for easier demonstration
+     */
     public String fetchSecrets(UUID keyStoreId) {
         // Fetch the KeyStore metadata
-        KeyStoreInfo keyStoreInfo = keyStoreInfoRepository.findById(keyStoreId).get();
+        KeyStoreInfo keyStoreInfo =
+                keyStoreInfoRepository.findById(keyStoreId)
+                        .orElseThrow(() -> new IllegalArgumentException("KeyStore not found"));
 
         // Load the corresponding KeyStore
         KeyStore keyStore = loadKeyStore(keyStoreInfo);
@@ -53,7 +65,7 @@ public class SecretService {
                 .build()) {
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(SECRET_URL))
+                    .uri(URI.create(caSettings.getSecretUrl()))
                     .GET()
                     .build();
 
@@ -63,8 +75,13 @@ public class SecretService {
         }
     }
 
+    /**
+     * Load the desired KeyStore from local storage
+     * @param keyStoreInfo Metadata corresponding to a locally stored KeyStore
+     * @return The KeyStore
+     */
     private KeyStore loadKeyStore(KeyStoreInfo keyStoreInfo) {
-        try (InputStream is = new FileInputStream(KeyStoreService.getKeyStorePath(keyStoreInfo.keyStoreId))) {
+        try (InputStream is = new FileInputStream(KeyStoreService.getKeyStoreResourcePath(keyStoreInfo.keyStoreId))) {
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(is, keyStoreInfo.getPass().toCharArray());
 
@@ -74,6 +91,12 @@ public class SecretService {
         }
     }
 
+    /**
+     * Load the KeyManagerFactory required for the SSLContext
+     * @param keyStore The KeyStore to use in the SSLContext
+     * @param pass The password to the KeyStore
+     * @return The KeyManagerFactory
+     */
     private KeyManagerFactory loadKeyManagerFactory(KeyStore keyStore, String pass) {
         try {
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -85,6 +108,10 @@ public class SecretService {
         }
     }
 
+    /**
+     * Load the TrustManagerFactory required for the SSLContext. Here, this will be the Root CA PKCS12 KeyStore
+     * @return The The TrustManagerFactory
+     */
     private TrustManagerFactory loadTrustManagerFactory() {
         try (InputStream is = new ClassPathResource("/ca/ca.p12").getInputStream()) {
             KeyStore trustStore = KeyStore.getInstance("PKCS12");
@@ -99,6 +126,12 @@ public class SecretService {
         }
     }
 
+    /**
+     * Create and initialise the SSLContext using the provided manager factories
+     * @param kmf The KeyManagerFactory
+     * @param tmf The TrustManagerFactory
+     * @return The initialised SSLContext
+     */
     private SSLContext loadSslContext(KeyManagerFactory kmf, TrustManagerFactory tmf) {
         try {
             SSLContext sslContext = SSLContext.getInstance("TLSv1.3");

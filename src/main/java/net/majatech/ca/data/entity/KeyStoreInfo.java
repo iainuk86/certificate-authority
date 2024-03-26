@@ -6,6 +6,11 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Entity to store the metadata relating to one of the KeyStores saved locally. One-to-one mapping
+ * <br><br>
+ * This information is also used to display KeyStore information in the Client Certificate UI table
+ */
 @Entity
 @Table(name = "keystore_info")
 public class KeyStoreInfo {

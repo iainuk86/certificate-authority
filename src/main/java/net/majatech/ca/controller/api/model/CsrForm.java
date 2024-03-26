@@ -1,5 +1,8 @@
 package net.majatech.ca.controller.api.model;
 
+/**
+ * Model class which maps to all HTML inputs for the CSR / 'Create' form
+ */
 public class CsrForm {
     private String commonName;
     private String locality;

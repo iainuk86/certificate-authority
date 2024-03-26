@@ -11,3 +11,6 @@ spring:
     user:
       name: maja-admin
       password: 123
+
+ca:
+  secret-url: https://ca.majatech.net:6789/api/secrets

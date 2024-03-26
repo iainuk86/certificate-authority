@@ -19,9 +19,9 @@ async function fetchSecret(selectedCert) {
 
             // The server will respond with a String response body if the call is successful
             return response.text()
-        }).then(text => {
+        }).then(secret => {
             return {
-                message: text,
+                message: secret,
                 color: "green"
             }
         }).catch((err) => {

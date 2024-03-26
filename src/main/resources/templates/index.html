@@ -69,12 +69,12 @@
                         <td th:text="${#dates.format(ks.notBefore, 'dd-MMM-yyyy')}"></td>
                         <td th:text="${#dates.format(ks.expiry, 'dd-MMM-yyyy')}"></td>
                         <td>
-                            <a th:href="@{/api/certs/download/{ksId}(ksId = ${ks.keyStoreId})}" download="file">
+                            <a th:href="@{/api/keystore/download/{ksId}(ksId = ${ks.keyStoreId})}" download="file">
                                 <img src="/images/download.png" alt="Download" class="img-download">
                             </a>
                         </td>
                         <td>
-                            <form th:action="@{/api/certs/delete/{certId}(certId = ${ks.keyStoreId})}" th:method="post">
+                            <form th:action="@{/api/keystore/delete/{ksId}(ksId = ${ks.keyStoreId})}" th:method="post">
                                 <input type="image" src="/images/bin.png" alt="Delete" class="img-delete">
                             </form>
                         </td>
@@ -104,7 +104,7 @@
                     <h1 class="modal-title fs-5" id="csr-modal-title">Create a CSR</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form th:action="@{/api/certs/csr}" th:method="post" th:object="${csrForm}">
+                <form th:action="@{/api/keystore/csr}" th:method="post" th:object="${csrForm}">
                     <div class="modal-body">
                         <div class="row mb-3">
                             <label for="csr-cn" class="col-form-label col-sm-4">Common Name:</label>
@@ -175,7 +175,7 @@
                     <h1 class="modal-title fs-5" id="upload-modal-title">Upload Certificate</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form th:action="@{/api/certs/upload}" th:method="post" enctype="multipart/form-data">
+                <form th:action="@{/api/keystore/upload}" th:method="post" enctype="multipart/form-data">
                     <div class="modal-body">
                         <div class="row mb-3 align-items-center">
                             <label for="ks-file" class="form-label col-sm-3">Certificate:</label>

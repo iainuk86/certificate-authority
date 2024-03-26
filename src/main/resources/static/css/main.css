@@ -85,10 +85,6 @@ html, body {
     transform: translateY(2px);
 }
 
-#pem-textarea {
-    font-size: 0.8rem;
-}
-
 #secret {
     display: none;
     font-size: 1.15rem;

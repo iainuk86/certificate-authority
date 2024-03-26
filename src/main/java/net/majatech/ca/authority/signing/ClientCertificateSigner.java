@@ -5,6 +5,9 @@ import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.springframework.stereotype.Component;
 
+/**
+ * Extends the CertificateSigner abstract class to add extensions that are specific to Client Certificates
+ */
 @Component
 public class ClientCertificateSigner extends CertificateSigner {
 

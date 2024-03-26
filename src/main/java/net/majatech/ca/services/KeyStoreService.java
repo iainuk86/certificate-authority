@@ -1,7 +1,8 @@
 package net.majatech.ca.services;
 
 import jakarta.transaction.Transactional;
-import net.majatech.ca.authority.*;
+import net.majatech.ca.authority.certificate.CertificateHolder;
+import net.majatech.ca.authority.certificate.DistinguishedName;
 import net.majatech.ca.authority.signing.CertificateSigningRequest;
 import net.majatech.ca.authority.signing.ClientCertificateSigner;
 import net.majatech.ca.controller.api.model.CsrForm;
@@ -37,53 +38,23 @@ public class KeyStoreService {
         this.clientCertificateSigner = clientCertificateSigner;
     }
 
-    @Transactional
-    public void saveUploadedKeyStore(MultipartFile file, String pass, String alias) {
-        try {
-            KeyStore keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(file.getInputStream(), pass.toCharArray());
-
-            if (!(keyStore.getCertificate(alias) instanceof X509Certificate x509Certificate)) {
-                throw new CaException("No X509Certificate exists with that alias");
-            }
-            x509Certificate.checkValidity();
-
-            KeyStoreInfo keyStoreInfo = KeyStoreInfo.from(x509Certificate, pass, alias);
-            saveKeyStore(keyStore, keyStoreInfo);
-        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
-            throw new CaException("Certificate is not valid. Please check the expiry", e);
-        } catch (Exception e) {
-            throw new CaException(e.getMessage(), e);
-        }
-    }
-
-    public void saveKeyStore(KeyStore keyStore, KeyStoreInfo keyStoreInfo) {
-        keyStoreInfoRepository.save(keyStoreInfo);
-        saveKeyStoreToFileSystem(keyStore, keyStoreInfo);
-    }
-
-    public CertificateSigningRequest createCsr(CsrForm csrForm) {
-        DistinguishedName subjectDn =
-                DistinguishedName.newBuilder()
-                        .setCommonName(csrForm.getCommonName())
-                        .setLocality(csrForm.getLocality())
-                        .setState(csrForm.getState())
-                        .setCountry(csrForm.getCountry())
-                        .setOrganization(csrForm.getOrganization())
-                        .setOrganizationalUnit(csrForm.getOrganizationalUnit())
-                        .build();
-
-        return CertificateSigningRequest.using(subjectDn);
-    }
-
+    /**
+     * Use the CSR values received from the UI to generate, sign and save the resulting KeyStore
+     * <br><br>
+     * Saves the KeyStore metadata into the database and saves the KeyStore itself to the local file system
+     * @param csrForm The CSR fields received from the UI
+     */
     @Transactional
     public void generateKeyStoreFromCsr(CsrForm csrForm) {
+        // Create CSR from UI values
         CertificateSigningRequest csr = createCsr(csrForm);
+
+        // Sign the certificate
         CertificateHolder certHolder = clientCertificateSigner.sign(csr);
 
         // Persist KeyStore metadata to database
         KeyStoreInfo keyStoreInfo =
-                saveKeyStoreInfo(
+                keyStoreInfoRepository.save(
                         KeyStoreInfo.from(
                                 certHolder.getX509Certificate(),
                                 csrForm.getKeyStorePass(),
@@ -96,14 +67,47 @@ public class KeyStoreService {
                 certHolder.generateKeyStore(csrForm.getKeyStorePass(), csrForm.getKeyStoreAlias()), keyStoreInfo);
     }
 
-    public KeyStoreInfo getKeyStoreInfo(UUID keyStoreId) {
-        return keyStoreInfoRepository.findById(keyStoreId).get();
+    /**
+     * Save the uploaded KeyStore to the system
+     * <br><br>
+     * Will first verify the provided file, password and entry alias are valid. Then creates the metadata domain class
+     * using the KeyStore information. This is then saved to the database and the KeyStore is stored locally
+     * @param file The uploaded KeyStore
+     * @param pass The KeyStore password
+     * @param alias The alias of the key entry/certificate to save
+     */
+    @Transactional
+    public void saveUploadedKeyStore(MultipartFile file, String pass, String alias) {
+        try {
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            keyStore.load(file.getInputStream(), pass.toCharArray());
+
+            // Verify the certificate/key exists
+            if (!(keyStore.getCertificate(alias) instanceof X509Certificate x509Certificate)) {
+                throw new CaException("No X509Certificate exists with that alias");
+            }
+            x509Certificate.checkValidity();
+
+            // Save the KeyStore
+            KeyStoreInfo keyStoreInfo = KeyStoreInfo.from(x509Certificate, pass, alias);
+            saveKeyStore(keyStore, keyStoreInfo);
+        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+            throw new CaException("Certificate is not valid. Please check the expiry", e);
+        } catch (Exception e) {
+            throw new CaException(e.getMessage(), e);
+        }
     }
 
+    /**
+     * Retrieves the desired KeyStore and converts it to a byte array to allow for it to be downloaded from the UI
+     * @param keyStoreId The ID of the KeyStore to be retrieved
+     * @return The KeyStore represented as a byte array
+     */
     public byte[] getKeyStore(UUID keyStoreId) {
-        KeyStoreInfo keyStoreInfo = getKeyStoreInfo(keyStoreId);
+        KeyStoreInfo keyStoreInfo =
+                keyStoreInfoRepository.findById(keyStoreId).orElseThrow(() -> new CaException("KeyStore not found"));
 
-        try (InputStream is = new FileInputStream(getKeyStorePath(keyStoreId))) {
+        try (InputStream is = new FileInputStream(getKeyStoreResourcePath(keyStoreId))) {
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(is, keyStoreInfo.pass.toCharArray());
 
@@ -119,35 +123,72 @@ public class KeyStoreService {
         }
     }
 
+    /**
+     * Deletes the KeyStore from the local file system and its metadata from the database
+     * @param keyStoreId The ID of the KeyStore to delete
+     */
     @Transactional
     public void deleteKeyStore(UUID keyStoreId) {
         keyStoreInfoRepository.deleteById(keyStoreId);
 
         try {
-            Files.delete(Paths.get(getKeyStorePath(keyStoreId)));
+            Files.delete(Paths.get(getKeyStoreResourcePath(keyStoreId)));
         } catch (IOException e) {
             throw new CaException(e.getMessage(), e);
         }
     }
 
+    /**
+     * Retrieve metadata corresponding to all currently saved KeyStores for UI display
+     * @return A list of all currently saved KeyStores
+     */
+    public List<KeyStoreInfo> getKeyStores() {
+        return keyStoreInfoRepository.findAll();
+    }
+
+    /**
+     * Creates a CSR using the data retrieved from the HTML CSR / 'Create' form
+     * @param csrForm The data retrieved from the user that will be used as the Subject in the certificate
+     * @return The CSR wrapper that also contains the corresponding KeyPair
+     */
+    private CertificateSigningRequest createCsr(CsrForm csrForm) {
+        DistinguishedName subjectDn =
+                DistinguishedName.newBuilder()
+                        .setCommonName(csrForm.getCommonName())
+                        .setLocality(csrForm.getLocality())
+                        .setState(csrForm.getState())
+                        .setCountry(csrForm.getCountry())
+                        .setOrganization(csrForm.getOrganization())
+                        .setOrganizationalUnit(csrForm.getOrganizationalUnit())
+                        .build();
+
+        return CertificateSigningRequest.using(subjectDn);
+    }
+
+    /**
+     * Saves the provided KeyStore to the local file system and its metadata to the database
+     * @param keyStore The KeyStore to save
+     * @param keyStoreInfo The metadata corresponding to the KeyStore
+     */
+    private void saveKeyStore(KeyStore keyStore, KeyStoreInfo keyStoreInfo) {
+        keyStoreInfoRepository.save(keyStoreInfo);
+        saveKeyStoreToFileSystem(keyStore, keyStoreInfo);
+    }
+
+    /**
+     * Saves the provided KeyStore to the local file system
+     * @param keyStore The KeyStore to save
+     * @param keyStoreInfo The metadata corresponding to the KeyStore
+     */
     private void saveKeyStoreToFileSystem(KeyStore keyStore, KeyStoreInfo keyStoreInfo) {
-        try (OutputStream outputStream = new FileOutputStream(getKeyStorePath(keyStoreInfo.keyStoreId))) {
+        try (OutputStream outputStream = new FileOutputStream(getKeyStoreResourcePath(keyStoreInfo.keyStoreId))) {
             keyStore.store(outputStream, keyStoreInfo.pass.toCharArray());
         } catch (Exception e) {
             throw new CaException(e.getMessage(), e);
         }
     }
 
-    @Transactional
-    public KeyStoreInfo saveKeyStoreInfo(KeyStoreInfo keyStoreInfo) {
-        return keyStoreInfoRepository.save(keyStoreInfo);
-    }
-
-    public List<KeyStoreInfo> getKeyStores() {
-        return keyStoreInfoRepository.findAll();
-    }
-
-    public static String getKeyStorePath(UUID keyStoreId) {
+    public static String getKeyStoreResourcePath(UUID keyStoreId) {
         return KEYSTORE_ROOT_DIRECTORY + keyStoreId + ".p12";
     }
 }

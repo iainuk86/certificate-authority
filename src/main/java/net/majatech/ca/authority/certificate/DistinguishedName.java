@@ -1,10 +1,13 @@
-package net.majatech.ca.authority;
+package net.majatech.ca.authority.certificate;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.springframework.util.StringUtils;
 
+/**
+ * Class to represent the Distinguished Name for either a certificate subject or issuer
+ */
 public class DistinguishedName {
     private final String commonName;
     private final String locality;
@@ -24,8 +27,15 @@ public class DistinguishedName {
         this.organizationalUnit = organizationalUnit;
     }
 
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
     /**
      * Convert the DN fields to a BouncyCastle X500Name object
+     * <br><br>
+     * BouncyCastle reverses the order in which the DN fields are configured. So as we want the CommonName to be
+     * displayed first we need to add that field to the builder last, as shown below
      */
     public X500Name toX500Name() {
         X500NameBuilder nameBuilder = new X500NameBuilder();
@@ -57,13 +67,6 @@ public class DistinguishedName {
         return nameBuilder.build();
     }
 
-    /**
-     * Entrypoint to create instances of DistinguishedName from the rest of the package.
-     */
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
     public String getCommonName() {
         return commonName;
     }
@@ -89,7 +92,7 @@ public class DistinguishedName {
     }
 
     /**
-     * Builder class for DistinguishedName. Builder pattern chosen as all DN fields are technically optional.
+     * Builder class for DistinguishedName. Builder pattern chosen as all DN fields are technically optional
      */
     public static class Builder {
         private String commonName;

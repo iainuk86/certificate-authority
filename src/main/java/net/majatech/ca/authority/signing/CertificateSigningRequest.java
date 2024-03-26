@@ -1,6 +1,6 @@
 package net.majatech.ca.authority.signing;
 
-import net.majatech.ca.authority.DistinguishedName;
+import net.majatech.ca.authority.certificate.DistinguishedName;
 import net.majatech.ca.exceptions.CaException;
 import net.majatech.ca.utils.KeyUtils;
 import org.bouncycastle.operator.ContentSigner;
@@ -14,6 +14,9 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+/**
+ * Wrapper class to hold the CSR as well as the data corresponding to it, such as the KeyPair and Subject DN
+ */
 public class CertificateSigningRequest {
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
 
@@ -27,6 +30,11 @@ public class CertificateSigningRequest {
         this.distinguishedName = dn;
     }
 
+    /**
+     * Static builder which will generate a new KeyPair and create a PKCS10 compliant CSR with the provided DN
+     * @param dn The Subject Distinguished Name to use in the certificate
+     * @return The CSR wrapper containing all of the related data
+     */
     public static CertificateSigningRequest using(DistinguishedName dn) {
         final KeyPair keyPair = KeyUtils.generateKeyPair();
 

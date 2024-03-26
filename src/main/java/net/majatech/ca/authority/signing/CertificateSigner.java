@@ -1,6 +1,6 @@
 package net.majatech.ca.authority.signing;
 
-import net.majatech.ca.authority.CertificateHolder;
+import net.majatech.ca.authority.certificate.CertificateHolder;
 import net.majatech.ca.exceptions.CaException;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -21,10 +21,24 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
+/**
+ * Abstract class that makes use of the Template Design Pattern
+ * <br><br>
+ * As the process for signing different certificates is more or less the same - they only really differ by the
+ * extensions that are used - it seemed natural to implement this logic using the Template pattern
+ * <br><br>
+ * The bulk of the logic - the Template - is implemented in this class, and Signers for different types of certificate
+ * can extend this class to add the extensions that are specific to that certificate type
+ */
 public abstract class CertificateSigner {
     private static final int SERIAL_NUMBER_LENGTH = 128;
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
 
+    /**
+     * Signs the provided CSR with the Root CA Certificate
+     * @param csr The CSR to sign
+     * @return A CertificateHolder containing the signed certificate and its corresponding data
+     */
     public CertificateHolder sign(CertificateSigningRequest csr) {
         try {
             IssuerInfo issuerInfo = fetchIssuerInfo();
@@ -33,6 +47,7 @@ public abstract class CertificateSigner {
             PublicKey subjectPublicKey = csr.getPublicKey();
             SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(subjectPublicKey.getEncoded());
 
+            // Set certificate validity to 1 year
             Instant notBefore = Instant.now();
             Instant notAfter = notBefore.plus(365, ChronoUnit.DAYS);
 
@@ -57,15 +72,22 @@ public abstract class CertificateSigner {
             X509CertificateHolder holder = certBuilder.build(signer);
             X509Certificate cert = new JcaX509CertificateConverter().setProvider("BC").getCertificate(holder);
 
+            // Verify the certificate was signed correctly
             cert.checkValidity();
             cert.verify(issuerInfo.keyPair().getPublic());
 
             return CertificateHolder.with(cert, csr.getKeyPair(), issuerInfo);
         } catch (Exception e) {
-            throw new CaException(e.getMessage());
+            throw new CaException(e.getMessage(), e);
         }
     }
 
+    /**
+     * The IssuerInfo in the case of this demonstration project is just all data relating to the Root CA certificate.
+     * <br><br>
+     * This method will fetch the Root CA certificate as well as its corresponding private key for signing purposes.
+     * @return The IssuerInfo for the Root CA certificate
+     */
     private IssuerInfo fetchIssuerInfo() {
         X509Certificate caCert;
         PublicKey rootCaPubKey;
@@ -92,6 +114,7 @@ public abstract class CertificateSigner {
         }
     }
 
+    // Abstract methods to be implemented by any class extending this one
     public abstract KeyUsage getKeyUsage();
     public abstract ExtendedKeyUsage getExtendedKeyUsage();
 }
