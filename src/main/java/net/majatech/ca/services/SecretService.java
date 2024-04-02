@@ -130,7 +130,7 @@ public class SecretService {
     }
 
     /**
-     * Send a request to the secret endpoint using the provided SSLContext
+     * Send a request to the protected endpoint using the provided SSLContext
      * @param sslContext The SSLContext to use in the request
      * @return The secret in String form. If any error occurs an exception is thrown and is handled by the UI. This
      * is simplified purely for demonstration purposes.

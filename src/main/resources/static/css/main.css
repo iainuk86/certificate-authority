@@ -11,7 +11,7 @@ html, body {
 
 .title h1 {
     text-transform: uppercase;
-    color: #c5ced7;
+    color: #303031;
 
     display: grid;
     grid-template-columns: 1fr max-content 1fr;
@@ -23,10 +23,10 @@ html, body {
 .title h1:after,.title h1:before {
     content: " ";
     display: block;
-    border-bottom: 1px solid #ffffff;
-    border-top: 1px solid #ffffff;
+    border-bottom: 1px solid #303031;
+    border-top: 1px solid #303031;
     height: 0.5rem;
-    background-color: #1e0909;
+    background-color: transparent;
 }
 
 .error-msg {
@@ -40,7 +40,19 @@ html, body {
     width: fit-content;
 }
 
+#login-grid {
+    height: 100%;
+    display: grid;
+    grid-template: 2fr 8fr / 1fr;
+    justify-items: center;
+}
+
+#login-title {
+    grid-area: 1 / 1 / 2 / 2;
+}
+
 #login-card-group {
+    grid-area: 2 / 1 / 3 / 2;
     width: 75rem;
     height: 35rem;
     margin: 0 auto;
@@ -49,7 +61,7 @@ html, body {
 #index-grid {
     height: 100%;
     display: grid;
-    grid-template: 1fr 3fr 6fr / 1fr 1fr;
+    grid-template: 1fr 3fr 6fr / 1fr;
     justify-items: center;
 }
 
@@ -57,17 +69,12 @@ html, body {
     grid-area: 1 / 1 / 2 / 3;
 }
 
-#index-desc {
-    grid-area: 2 / 1 / 3 / 2;
-    color: white;
-}
-
 #index-endpoint {
-    grid-area: 2 / 2 / 3 / 3;
+    grid-area: 2 / 1 / 3 / 3;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    color: white;
+    color: #303031;
 }
 
 #index-cert-table {
@@ -86,6 +93,16 @@ html, body {
 }
 
 #secret {
-    display: none;
+    visibility: hidden;
     font-size: 1.15rem;
+}
+
+#tooltip-instructions {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.form-req:after {
+    content:" *";
+    color: red;
 }

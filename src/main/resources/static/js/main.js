@@ -22,7 +22,7 @@ async function fetchSecret(selectedCert) {
         }).then(secret => {
             return {
                 message: secret,
-                color: "green"
+                color: "#378a37"
             }
         }).catch((err) => {
             console.log(err)
@@ -37,5 +37,5 @@ function displayResult(result) {
     let secret = document.getElementById('secret')
     secret.textContent = result.message
     secret.style.color = result.color
-    secret.style.display = "block"
+    secret.style.visibility = "visible"
 }

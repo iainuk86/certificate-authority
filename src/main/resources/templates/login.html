@@ -11,34 +11,36 @@
               crossorigin="anonymous">
     </head>
     <body>
-        <div class="container">
-            <div class="title m-5">
-                <h1 class="p-4">Maja Tech Confidential Archive</h1>
-            </div>
-            <div id="login-card-group" class="card-group shadow">
-                <div class="card">
-                    <img class="card-img h-100" src="/images/mainframe.png" alt="Secret mainframe">
+        <div class="container h-100">
+            <div id="login-grid">
+                <div id="login-title" class="container title m-5">
+                    <h1 class="py-4">Maja Tech Confidential Archive</h1>
                 </div>
-                <div class="card">
-                    <img class="card-img-top mt-1" src="/images/restricted.png" alt="Restricted">
-                    <div class="card-body">
-                        <h5 class="card-title">Entry Restricted</h5>
-                        <p class="card-text">This resource definitely does not contain super-secret information.</p>
-                        <p class="card-text">Nope. Avert your attention elsewhere.</p>
+                <div id="login-card-group" class="card-group shadow">
+                    <div class="card">
+                        <img class="card-img h-100" src="/images/mainframe.png" alt="Secret mainframe">
+                    </div>
+                    <div class="card">
+                        <img class="card-img-top mt-1" src="/images/restricted.png" alt="Restricted">
+                        <div class="card-body">
+                            <h5 class="card-title">Entry Restricted</h5>
+                            <p class="card-text">This resource definitely does not contain super-secret information.</p>
+                            <p class="card-text">Nope. Avert your attention elsewhere.</p>
 
-                        <form th:action="@{/login}" method="post">
-                            <div class="mx-auto my-4 d-flex justify-content-around">
-                                <input type="hidden" name="username" value="maja-admin">
-                                <label for="inputPassword" class="col-form-label">Password:</label>
-                                <input type="password" id="inputPassword" name="password"
-                                       class="form-control d-inline-block w-50" autofocus
-                                >
-                            </div>
+                            <form th:action="@{/login}" method="post">
+                                <div class="mx-auto my-4 d-flex justify-content-around">
+                                    <input type="hidden" name="username" value="maja-admin">
+                                    <label for="inputPassword" class="col-form-label">Password:</label>
+                                    <input type="password" id="inputPassword" name="password"
+                                           class="form-control d-inline-block w-50" autofocus
+                                    >
+                                </div>
 
-                            <button type="submit" class="btn btn-info w-25 mt-3">Enter</button>
-                        </form>
+                                <button type="submit" class="btn btn-info w-25 mt-3">Enter</button>
+                            </form>
 
-                        <div th:if="${param.error}" class="mt-2 error-msg">Invalid password</div>
+                            <div th:if="${param.error}" class="mt-2 error-msg">Invalid password</div>
+                        </div>
                     </div>
                 </div>
             </div>

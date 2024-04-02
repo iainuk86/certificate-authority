@@ -14,39 +14,28 @@
     <div class="container h-100">
         <div id="index-grid">
             <div id="index-title" class="container title m-5">
-                <h1 class="py-4">Secret Endpoint</h1>
-            </div>
-            <!-- Left side - description -->
-            <div id="index-desc" class="container">
-                <div class="card h-100">
-                    <div class="container p-4">
-                        <p>The button to the right attempts to fetch secrets from an endpoint hosted elsewhere.</p>
-                        <p>This endpoint only responds to client certificates that are signed by our secret CA.</p>
-                        <p>Select an appropriate certificate from below and attempt to uncover the secrets.</p>
-                        <p>Creating a certificate through the CSR option will sign the certificate with our CA.</p>
-                        <p>Feel free to upload your own certificates to test how the endpoint will respond.</p>
-                    </div>
-                </div>
+                <h1 class="py-4">Protected Endpoint</h1>
             </div>
 
-            <!-- Right side - endpoint animation -->
             <div id="index-endpoint" class="container d-flex">
-                <div>
-                    <h2>Select a certificate from the table below</h2>
+                <div class="d-flex justify-content-center align-items-center">
+                    <h2 class="me-3">Select a certificate from the table below</h2>
+                    <img src="/images/tooltip.png" alt="Tooltip" id="tooltip-instructions" data-bs-toggle="tooltip"
+                         data-bs-placement="right" title="Only certificates signed by our CA will reveal secrets">
                 </div>
-                <h5 id="secret"></h5>
                 <div>
                     <button onclick="fetchWithSelectedCertificate()" class="btn btn-success">Fetch Secrets</button>
                 </div>
+                <h5 id="secret"></h5>
             </div>
 
             <!-- Lower side - certificate table and cert buttons -->
             <div id="index-cert-table" class="container mt-5">
                 <div class="d-flex justify-content-between mb-2">
-                    <h1 class="d-inline" style="color: white; font-size: 1.5rem">Available Client Certificates</h1>
+                    <h1 class="d-inline" style="font-size: 1.5rem">Available Client Certificates</h1>
                     <div class="d-flex align-items-center">
-                        <button class="btn btn-info me-3" data-bs-toggle="modal" data-bs-target="#csr-modal">Create</button>
-                        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#upload-modal">Upload</button>
+                        <button class="btn btn-dark me-3" data-bs-toggle="modal" data-bs-target="#csr-modal">Create</button>
+                        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#upload-modal">Upload</button>
                     </div>
                 </div>
                 <table class="table table-striped">
@@ -105,39 +94,39 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form th:action="@{/api/keystore/csr}" th:method="post" th:object="${csrForm}">
-                    <div class="modal-body">
+                    <div class="modal-body text-start">
                         <div class="row mb-3">
-                            <label for="csr-cn" class="col-form-label col-sm-4">Common Name:</label>
+                            <label for="csr-cn" class="col-form-label col-sm-4 form-req">Common Name</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" id="csr-cn" th:field="*{commonName}" required>
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="csr-l" class="col-form-label col-sm-4">Locality:</label>
+                            <label for="csr-l" class="col-form-label col-sm-4">Locality</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" id="csr-l" th:field="*{locality}">
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="csr-st" class="col-form-label col-sm-4">State:</label>
+                            <label for="csr-st" class="col-form-label col-sm-4">State</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" id="csr-st" th:field="*{state}">
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="csr-c" class="col-form-label col-sm-4">Country:</label>
+                            <label for="csr-c" class="col-form-label col-sm-4">Country</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" id="csr-c" th:field="*{country}">
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="csr-o" class="col-form-label col-sm-4">Organization:</label>
+                            <label for="csr-o" class="col-form-label col-sm-4">Organization</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" id="csr-o" th:field="*{organization}">
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="csr-ou" class="col-form-label col-sm-4">Organizational Unit:</label>
+                            <label for="csr-ou" class="col-form-label col-sm-4">Organizational Unit</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" id="csr-ou" th:field="*{organizationalUnit}">
                             </div>
@@ -146,21 +135,24 @@
                             <h1 class="modal-title fs-5" id="ks-modal-title">KeyStore Details</h1>
                         </div>
                         <div class="row mb-3">
-                            <label for="ks-p" class="col-form-label col-sm-4">KeyStore Password:</label>
+                            <label for="ks-p" class="col-form-label col-sm-4 form-req">KeyStore Password</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" id="ks-p" th:field="*{keyStorePass}" required>
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="ks-a" class="col-form-label col-sm-4">Key Alias:</label>
+                            <label for="ks-a" class="col-form-label col-sm-4 form-req">Key Alias</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" id="ks-a" th:field="*{keyStoreAlias}" required>
                             </div>
                         </div>
+                        <div class="d-flex justify-content-center">
+                            <p>Fields marked with an asterisk are required</p>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-info">Submit</button>
+                        <button type="submit" class="btn btn-dark">Submit</button>
                     </div>
                 </form>
             </div>
@@ -176,30 +168,33 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form th:action="@{/api/keystore/upload}" th:method="post" enctype="multipart/form-data">
-                    <div class="modal-body">
+                    <div class="modal-body text-start">
                         <div class="row mb-3 align-items-center">
-                            <label for="ks-file" class="form-label col-sm-3">Certificate:</label>
+                            <label for="ks-file" class="form-label col-sm-3 form-req">Certificate</label>
                             <div class="col-sm-9">
                                 <input class="form-control" type="file" id="ks-file" name="ks" required>
                             </div>
                         </div>
                         <div class="row mb-3 align-items-center">
-                            <label for="ks-pass" class="form-label col-sm-3">Password:</label>
+                            <label for="ks-pass" class="form-label col-sm-3 form-req">Password</label>
                             <div class="col-sm-9">
                                 <input class="form-control" type="text" id="ks-pass" name="pass" required>
                             </div>
                         </div>
                         <div class="row mb-3 align-items-center">
-                            <label for="ks-alias" class="form-label col-sm-3">Alias:</label>
+                            <label for="ks-alias" class="form-label col-sm-3 form-req">Alias</label>
                             <div class="col-sm-9">
                                 <input class="form-control" type="text" id="ks-alias" name="alias" required>
                             </div>
                         </div>
-                        <p class="mb-1">Currently only PKCS#12 files are supported</p>
+                        <div class="d-flex flex-column align-items-center">
+                            <p class="mb-2">Currently only PKCS#12 files are supported</p>
+                            <p>Fields marked with an asterisk are required</p>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-info">Submit</button>
+                        <button type="submit" class="btn btn-dark">Submit</button>
                     </div>
                 </form>
             </div>
