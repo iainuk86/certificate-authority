@@ -43,6 +43,9 @@ public class KeyStoreControllerTest {
     private KeyStoreInfoRepository keyStoreInfoRepository;
 
     @Autowired
+    private KeyStoreService keyStoreService;
+
+    @Autowired
     private ClientCertificateSigner clientCertificateSigner;
 
     @Autowired
@@ -277,7 +280,7 @@ public class KeyStoreControllerTest {
         // Assert KeyStore is saved
         assertThat(keyStoreInfoRepository.findById(UUID.fromString(savedKeyStoreId))).isPresent();
         assertThat(Files.exists(
-                Paths.get(KeyStoreService.getKeyStoreResourcePath(UUID.fromString(savedKeyStoreId))))).isTrue();
+                Paths.get(keyStoreService.getKeyStoreResourcePath(UUID.fromString(savedKeyStoreId))))).isTrue();
 
         // Now delete the keystore
         mockMvc.perform(post("/api/keystore/delete/" + savedKeyStoreId)
@@ -289,6 +292,6 @@ public class KeyStoreControllerTest {
         // Assert KeyStore has been deleted
         assertThat(keyStoreInfoRepository.findById(UUID.fromString(savedKeyStoreId))).isNotPresent();
         assertThat(Files.exists(
-                Paths.get(KeyStoreService.getKeyStoreResourcePath(UUID.fromString(savedKeyStoreId))))).isFalse();
+                Paths.get(keyStoreService.getKeyStoreResourcePath(UUID.fromString(savedKeyStoreId))))).isFalse();
     }
 }

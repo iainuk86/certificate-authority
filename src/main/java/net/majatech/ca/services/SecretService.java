@@ -25,11 +25,13 @@ import java.util.UUID;
 public class SecretService {
 
     private final KeyStoreInfoRepository keyStoreInfoRepository;
+    private final KeyStoreService keyStoreService;
     private final CaSettings caSettings;
 
     @Autowired
-    public SecretService(KeyStoreInfoRepository keyStoreInfoRepository, CaSettings caSettings) {
+    public SecretService(KeyStoreInfoRepository keyStoreInfoRepository, KeyStoreService keyStoreService, CaSettings caSettings) {
         this.keyStoreInfoRepository = keyStoreInfoRepository;
+        this.keyStoreService = keyStoreService;
         this.caSettings = caSettings;
     }
 
@@ -67,7 +69,7 @@ public class SecretService {
      * @return The KeyStore
      */
     private KeyStore loadKeyStore(KeyStoreInfo keyStoreInfo) {
-        try (InputStream is = new FileInputStream(KeyStoreService.getKeyStoreResourcePath(keyStoreInfo.keyStoreId))) {
+        try (InputStream is = new FileInputStream(keyStoreService.getKeyStoreResourcePath(keyStoreInfo.keyStoreId))) {
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(is, keyStoreInfo.getPass().toCharArray());
 

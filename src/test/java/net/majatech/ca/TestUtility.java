@@ -8,6 +8,7 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
@@ -22,6 +23,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Component
 public class TestUtility {
+
+    private final KeyStoreService keyStoreService;
+
+    @Autowired
+    public TestUtility(KeyStoreService keyStoreService) {
+        this.keyStoreService = keyStoreService;
+    }
 
     public CsrForm getDefaultTestCsrForm() {
         CsrForm csrForm = new CsrForm();
@@ -54,7 +62,7 @@ public class TestUtility {
     }
 
     public KeyStore fetchSavedKeyStore(UUID keyStoreId, String pass) throws Exception {
-        try (InputStream is = new FileInputStream(KeyStoreService.getKeyStoreResourcePath(keyStoreId))) {
+        try (InputStream is = new FileInputStream(keyStoreService.getKeyStoreResourcePath(keyStoreId))) {
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(is, pass.toCharArray());
 
@@ -63,7 +71,7 @@ public class TestUtility {
     }
 
     public void cleanUpKeyStoreFromFileSystem(UUID keyStoreId) throws IOException {
-        Files.delete(Paths.get(KeyStoreService.getKeyStoreResourcePath(keyStoreId)));
+        Files.delete(Paths.get(keyStoreService.getKeyStoreResourcePath(keyStoreId)));
     }
 
     public void assertDistinguishedNamesAreEqual(X500Name x500Name, DistinguishedName dn) {

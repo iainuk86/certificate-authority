@@ -10,6 +10,7 @@ import net.majatech.ca.data.entity.KeyStoreInfo;
 import net.majatech.ca.data.repo.KeyStoreInfoRepository;
 import net.majatech.ca.exceptions.CaException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,7 +27,7 @@ import java.util.UUID;
 @Service
 public class KeyStoreService {
 
-    private static final String KEYSTORE_ROOT_DIRECTORY = "C:\\Users\\iainu\\IdeaProjects\\ca\\src\\main\\resources\\clients\\";
+    private final String KEYSTORE_ROOT_DIRECTORY = resolveKeyStoreRootDirectory();
 
     private final KeyStoreInfoRepository keyStoreInfoRepository;
     private final ClientCertificateSigner clientCertificateSigner;
@@ -194,7 +195,15 @@ public class KeyStoreService {
         }
     }
 
-    public static String getKeyStoreResourcePath(UUID keyStoreId) {
+    public String getKeyStoreResourcePath(UUID keyStoreId) {
         return KEYSTORE_ROOT_DIRECTORY + keyStoreId + ".p12";
+    }
+
+    private String resolveKeyStoreRootDirectory() {
+        try {
+            return new ClassPathResource("clients").getFile().getAbsolutePath() + File.separator;
+        } catch (IOException e) {
+            throw new CaException("Could not resolve KeyStore root directory", e);
+        }
     }
 }
