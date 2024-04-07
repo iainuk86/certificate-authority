@@ -3,7 +3,7 @@ package net.majatech.ca;
 import net.majatech.ca.authority.certificate.DistinguishedName;
 import net.majatech.ca.authority.signing.CertificateSigningRequest;
 import net.majatech.ca.controller.api.model.CsrForm;
-import net.majatech.ca.services.KeyStoreService;
+import net.majatech.ca.services.S3Service;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -11,11 +11,6 @@ import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.UUID;
 
@@ -24,11 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Component
 public class TestUtility {
 
-    private final KeyStoreService keyStoreService;
+    private final S3Service s3Service;
 
     @Autowired
-    public TestUtility(KeyStoreService keyStoreService) {
-        this.keyStoreService = keyStoreService;
+    public TestUtility(S3Service s3Service) {
+        this.s3Service = s3Service;
     }
 
     public CsrForm getDefaultTestCsrForm() {
@@ -61,17 +56,12 @@ public class TestUtility {
                 .build();
     }
 
-    public KeyStore fetchSavedKeyStore(UUID keyStoreId, String pass) throws Exception {
-        try (InputStream is = new FileInputStream(keyStoreService.getKeyStoreResourcePath(keyStoreId))) {
-            KeyStore keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(is, pass.toCharArray());
-
-            return keyStore;
-        }
+    public KeyStore fetchSavedKeyStore(UUID keyStoreId, String pass) {
+        return s3Service.fetchKeyStore(keyStoreId, pass);
     }
 
-    public void cleanUpKeyStoreFromFileSystem(UUID keyStoreId) throws IOException {
-        Files.delete(Paths.get(keyStoreService.getKeyStoreResourcePath(keyStoreId)));
+    public void cleanUpKeyStoreFromS3Bucket(UUID keyStoreId) {
+        s3Service.deleteKeyStore(keyStoreId);
     }
 
     public void assertDistinguishedNamesAreEqual(X500Name x500Name, DistinguishedName dn) {

@@ -7,7 +7,6 @@ import net.majatech.ca.authority.signing.CertificateSigningRequest;
 import net.majatech.ca.authority.signing.ClientCertificateSigner;
 import net.majatech.ca.data.entity.KeyStoreInfo;
 import net.majatech.ca.data.repo.KeyStoreInfoRepository;
-import net.majatech.ca.services.KeyStoreService;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
@@ -30,7 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -41,9 +39,6 @@ public class KeyStoreControllerTest {
 
     @Autowired
     private KeyStoreInfoRepository keyStoreInfoRepository;
-
-    @Autowired
-    private KeyStoreService keyStoreService;
 
     @Autowired
     private ClientCertificateSigner clientCertificateSigner;
@@ -89,7 +84,7 @@ public class KeyStoreControllerTest {
 
         testUtility.assertDistinguishedNamesAreEqual(x500Name, subjectDn);
 
-        // Assert the KeyStore itself was saved to the local file system
+        // Assert the KeyStore itself was saved to the S3 Bucket
         KeyStore savedKeyStore = testUtility.fetchSavedKeyStore(UUID.fromString(savedKeyStoreId), savedInfo.getPass());
         assertThat(savedKeyStore.containsAlias("alias")).isTrue();
         assertThat(savedKeyStore.isKeyEntry("alias")).isTrue();
@@ -101,8 +96,8 @@ public class KeyStoreControllerTest {
         testUtility.assertDistinguishedNamesAreEqual(
                 X500Name.getInstance(x509.getSubjectX500Principal().getEncoded()), subjectDn);
 
-        // Cleanup local file system
-        testUtility.cleanUpKeyStoreFromFileSystem(UUID.fromString(savedKeyStoreId));
+        // Cleanup S3 Bucket
+        testUtility.cleanUpKeyStoreFromS3Bucket(UUID.fromString(savedKeyStoreId));
     }
 
     @Test
@@ -188,7 +183,7 @@ public class KeyStoreControllerTest {
 
         testUtility.assertDistinguishedNamesAreEqual(x500Name, csr.getDistinguishedName());
 
-        // Assert the KeyStore itself was saved to the local file system
+        // Assert the KeyStore itself was saved to the S3 Bucket
         KeyStore savedKeyStore = testUtility.fetchSavedKeyStore(UUID.fromString(savedKeyStoreId), savedInfo.getPass());
         assertThat(savedKeyStore.containsAlias("alias")).isTrue();
         assertThat(savedKeyStore.isKeyEntry("alias")).isTrue();
@@ -200,8 +195,8 @@ public class KeyStoreControllerTest {
         testUtility.assertDistinguishedNamesAreEqual(
                 X500Name.getInstance(x509.getSubjectX500Principal().getEncoded()), csr.getDistinguishedName());
 
-        // Cleanup local file system
-        testUtility.cleanUpKeyStoreFromFileSystem(UUID.fromString(savedKeyStoreId));
+        // Cleanup S3 Bucket
+        testUtility.cleanUpKeyStoreFromS3Bucket(UUID.fromString(savedKeyStoreId));
     }
 
     @Test
@@ -253,8 +248,8 @@ public class KeyStoreControllerTest {
         testUtility.assertDistinguishedNamesAreEqual(
                 X500Name.getInstance(x509.getSubjectX500Principal().getEncoded()), subjectDn);
 
-        // Cleanup local file system
-        testUtility.cleanUpKeyStoreFromFileSystem(UUID.fromString(savedKeyStoreId));
+        // Cleanup S3 Bucket
+        testUtility.cleanUpKeyStoreFromS3Bucket(UUID.fromString(savedKeyStoreId));
     }
 
     @Test
@@ -279,8 +274,6 @@ public class KeyStoreControllerTest {
 
         // Assert KeyStore is saved
         assertThat(keyStoreInfoRepository.findById(UUID.fromString(savedKeyStoreId))).isPresent();
-        assertThat(Files.exists(
-                Paths.get(keyStoreService.getKeyStoreResourcePath(UUID.fromString(savedKeyStoreId))))).isTrue();
 
         // Now delete the keystore
         mockMvc.perform(post("/api/keystore/delete/" + savedKeyStoreId)
@@ -291,7 +284,5 @@ public class KeyStoreControllerTest {
 
         // Assert KeyStore has been deleted
         assertThat(keyStoreInfoRepository.findById(UUID.fromString(savedKeyStoreId))).isNotPresent();
-        assertThat(Files.exists(
-                Paths.get(keyStoreService.getKeyStoreResourcePath(UUID.fromString(savedKeyStoreId))))).isFalse();
     }
 }

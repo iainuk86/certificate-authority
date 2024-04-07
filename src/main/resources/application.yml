@@ -1,16 +1,22 @@
+server:
+  port: 9876
+
 spring:
   sql:
     init:
       platform: postgres
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://portfolio-db-1.cp40wgycqsw2.ap-southeast-2.rds.amazonaws.com:5432/portfolio?currentSchema=ca
-    username: postgres
-    password: AQ!DE#sw2
+    url:
+    username:
+    password:
   security:
     user:
-      name: maja-admin
-      password: 123
+      name:
+      password:
 
 ca:
-  secret-url: https://ca.majatech.net:6789/api/secrets
+  secret-url:
+  aws:
+    s3-bucket:
+    region:

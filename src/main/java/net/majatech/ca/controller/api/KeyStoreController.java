@@ -66,7 +66,7 @@ public class KeyStoreController {
     public @ResponseBody byte[] downloadCertificate(@PathVariable("ksId") UUID ksId, HttpServletResponse resp) {
         resp.setHeader("Content-Disposition", "attachment; filename=client.p12");
 
-        return keyStoreService.getKeyStore(ksId);
+        return keyStoreService.getKeyStoreBytes(ksId);
     }
 
     /**

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -25,14 +24,14 @@ import java.util.UUID;
 public class SecretService {
 
     private final KeyStoreInfoRepository keyStoreInfoRepository;
-    private final KeyStoreService keyStoreService;
     private final CaSettings caSettings;
+    private final S3Service s3Service;
 
     @Autowired
-    public SecretService(KeyStoreInfoRepository keyStoreInfoRepository, KeyStoreService keyStoreService, CaSettings caSettings) {
+    public SecretService(KeyStoreInfoRepository keyStoreInfoRepository, CaSettings caSettings, S3Service s3Service) {
         this.keyStoreInfoRepository = keyStoreInfoRepository;
-        this.keyStoreService = keyStoreService;
         this.caSettings = caSettings;
+        this.s3Service = s3Service;
     }
 
     /**
@@ -64,19 +63,12 @@ public class SecretService {
     }
 
     /**
-     * Load the desired KeyStore from local storage
-     * @param keyStoreInfo Metadata corresponding to a locally stored KeyStore
+     * Load the desired KeyStore from the S3 Bucket
+     * @param keyStoreInfo Metadata corresponding to KeyStore stored in the S3 Bucket
      * @return The KeyStore
      */
     private KeyStore loadKeyStore(KeyStoreInfo keyStoreInfo) {
-        try (InputStream is = new FileInputStream(keyStoreService.getKeyStoreResourcePath(keyStoreInfo.keyStoreId))) {
-            KeyStore keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(is, keyStoreInfo.getPass().toCharArray());
-
-            return keyStore;
-        } catch (Exception e) {
-            throw new CaException(e.getMessage(), e);
-        }
+        return s3Service.fetchKeyStore(keyStoreInfo);
     }
 
     /**
@@ -98,7 +90,7 @@ public class SecretService {
 
     /**
      * Load the TrustManagerFactory required for the SSLContext. Here, this will be the Root CA PKCS12 KeyStore
-     * @return The The TrustManagerFactory
+     * @return The TrustManagerFactory
      */
     private TrustManagerFactory loadTrustManagerFactory() {
         try (InputStream is = new ClassPathResource("/ca/ca.p12").getInputStream()) {
@@ -135,7 +127,7 @@ public class SecretService {
      * Send a request to the protected endpoint using the provided SSLContext
      * @param sslContext The SSLContext to use in the request
      * @return The secret in String form. If any error occurs an exception is thrown and is handled by the UI. This
-     * is simplified purely for demonstration purposes.
+     * is simplified purely for demonstration purposes
      */
     public String sendRequestWithSslContext(SSLContext sslContext) {
         try (HttpClient httpClient = HttpClient.newBuilder()

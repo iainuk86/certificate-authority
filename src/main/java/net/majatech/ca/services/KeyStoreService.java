@@ -10,13 +10,9 @@ import net.majatech.ca.data.entity.KeyStoreInfo;
 import net.majatech.ca.data.repo.KeyStoreInfoRepository;
 import net.majatech.ca.exceptions.CaException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
@@ -27,14 +23,14 @@ import java.util.UUID;
 @Service
 public class KeyStoreService {
 
-    private final String KEYSTORE_ROOT_DIRECTORY = resolveKeyStoreRootDirectory();
-
+    private final S3Service s3Service;
     private final KeyStoreInfoRepository keyStoreInfoRepository;
     private final ClientCertificateSigner clientCertificateSigner;
 
     @Autowired
-    public KeyStoreService(KeyStoreInfoRepository keyStoreInfoRepository,
+    public KeyStoreService(S3Service s3Service, KeyStoreInfoRepository keyStoreInfoRepository,
                            ClientCertificateSigner clientCertificateSigner) {
+        this.s3Service = s3Service;
         this.keyStoreInfoRepository = keyStoreInfoRepository;
         this.clientCertificateSigner = clientCertificateSigner;
     }
@@ -42,7 +38,7 @@ public class KeyStoreService {
     /**
      * Use the CSR values received from the UI to generate, sign and save the resulting KeyStore
      * <br><br>
-     * Saves the KeyStore metadata into the database and saves the KeyStore itself to the local file system
+     * Saves the KeyStore metadata into the database and uploads the KeyStore itself to the S3 Bucket
      * @param csrForm The CSR fields received from the UI
      * @return The ID of the generated KeyStore
      */
@@ -64,18 +60,18 @@ public class KeyStoreService {
                         )
                 );
 
-        // Save KeyStore to file system for easy retrieval and usage
-        saveKeyStoreToFileSystem(
+        // Upload KeyStore to S3 bucket
+        s3Service.saveKeyStore(
                 certHolder.generateKeyStore(csrForm.getKeyStorePass(), csrForm.getKeyStoreAlias()), keyStoreInfo);
 
-        return keyStoreInfo.keyStoreId.toString();
+        return keyStoreInfo.getKeyStoreId().toString();
     }
 
     /**
-     * Save the uploaded KeyStore to the system
+     * Save the uploaded KeyStore file to the application
      * <br><br>
      * Will first verify the provided file, password and entry alias are valid. Then creates the metadata domain class
-     * using the KeyStore information. This is then saved to the database and the KeyStore is stored locally
+     * using the KeyStore information. This is then saved to the database and the KeyStore is uploaded to the S3 Bucket
      * @param file The uploaded KeyStore
      * @param pass The KeyStore password
      * @param alias The alias of the key entry/certificate to save
@@ -97,11 +93,11 @@ public class KeyStoreService {
             KeyStoreInfo keyStoreInfo = KeyStoreInfo.from(x509Certificate, pass, alias);
             saveKeyStore(keyStore, keyStoreInfo);
 
-            return keyStoreInfo.keyStoreId.toString();
+            return keyStoreInfo.getKeyStoreId().toString();
         } catch (CertificateExpiredException | CertificateNotYetValidException e) {
             throw new CaException("Certificate is not valid. Please check the expiry", e);
         } catch (Exception e) {
-            throw new CaException(e.getMessage(), e);
+            throw new CaException("Please upload a valid PKCS12 Certificate", e);
         }
     }
 
@@ -110,39 +106,20 @@ public class KeyStoreService {
      * @param keyStoreId The ID of the KeyStore to be retrieved
      * @return The KeyStore represented as a byte array
      */
-    public byte[] getKeyStore(UUID keyStoreId) {
-        KeyStoreInfo keyStoreInfo =
-                keyStoreInfoRepository.findById(keyStoreId).orElseThrow(() -> new CaException("KeyStore not found"));
+    public byte[] getKeyStoreBytes(UUID keyStoreId) {
+        keyStoreInfoRepository.findById(keyStoreId).orElseThrow(() -> new CaException("KeyStore not found"));
 
-        try (InputStream is = new FileInputStream(getKeyStoreResourcePath(keyStoreId))) {
-            KeyStore keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(is, keyStoreInfo.pass.toCharArray());
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            keyStore.store(baos, keyStoreInfo.pass.toCharArray());
-
-            byte[] bytes = baos.toByteArray();
-            baos.close();
-
-            return bytes;
-        } catch (Exception e) {
-            throw new CaException(e.getMessage(), e);
-        }
+        return s3Service.fetchKeyStoreAsBytes(keyStoreId);
     }
 
     /**
-     * Deletes the KeyStore from the local file system and its metadata from the database
+     * Deletes the KeyStore metadata from the database as well as the corresponding KeyStore from the S3 Bucket
      * @param keyStoreId The ID of the KeyStore to delete
      */
     @Transactional
     public void deleteKeyStore(UUID keyStoreId) {
         keyStoreInfoRepository.deleteById(keyStoreId);
-
-        try {
-            Files.delete(Paths.get(getKeyStoreResourcePath(keyStoreId)));
-        } catch (IOException e) {
-            throw new CaException(e.getMessage(), e);
-        }
+        s3Service.deleteKeyStore(keyStoreId);
     }
 
     /**
@@ -173,37 +150,12 @@ public class KeyStoreService {
     }
 
     /**
-     * Saves the provided KeyStore to the local file system and its metadata to the database
+     * Saves the provided KeyStore metadata to the database and the KeyStore to the S3 Bucket
      * @param keyStore The KeyStore to save
      * @param keyStoreInfo The metadata corresponding to the KeyStore
      */
     private void saveKeyStore(KeyStore keyStore, KeyStoreInfo keyStoreInfo) {
         keyStoreInfoRepository.save(keyStoreInfo);
-        saveKeyStoreToFileSystem(keyStore, keyStoreInfo);
-    }
-
-    /**
-     * Saves the provided KeyStore to the local file system
-     * @param keyStore The KeyStore to save
-     * @param keyStoreInfo The metadata corresponding to the KeyStore
-     */
-    private void saveKeyStoreToFileSystem(KeyStore keyStore, KeyStoreInfo keyStoreInfo) {
-        try (OutputStream outputStream = new FileOutputStream(getKeyStoreResourcePath(keyStoreInfo.keyStoreId))) {
-            keyStore.store(outputStream, keyStoreInfo.pass.toCharArray());
-        } catch (Exception e) {
-            throw new CaException(e.getMessage(), e);
-        }
-    }
-
-    public String getKeyStoreResourcePath(UUID keyStoreId) {
-        return KEYSTORE_ROOT_DIRECTORY + keyStoreId + ".p12";
-    }
-
-    private String resolveKeyStoreRootDirectory() {
-        try {
-            return new ClassPathResource("clients").getFile().getAbsolutePath() + File.separator;
-        } catch (IOException e) {
-            throw new CaException("Could not resolve KeyStore root directory", e);
-        }
+        s3Service.saveKeyStore(keyStore, keyStoreInfo);
     }
 }

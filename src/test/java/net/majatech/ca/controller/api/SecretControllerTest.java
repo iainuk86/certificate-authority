@@ -80,7 +80,7 @@ public class SecretControllerTest {
 
         assertThat(secret).isEqualTo("Secret Placeholder");
 
-        // Cleanup local file system
-        testUtility.cleanUpKeyStoreFromFileSystem(UUID.fromString(savedKeyStoreId));
+        // Cleanup S3 Bucket
+        testUtility.cleanUpKeyStoreFromS3Bucket(UUID.fromString(savedKeyStoreId));
     }
 }

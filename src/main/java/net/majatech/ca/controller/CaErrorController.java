@@ -41,7 +41,7 @@ public class CaErrorController implements ErrorController {
 
         CsrForm csrForm = new CsrForm();
         model.addAttribute("csrForm", csrForm);
-        model.addAttribute("errorMessage", ex == null ? "Unexpected error" : ex.getCause().getMessage());
+        model.addAttribute("errorMessage", ex == null ? "Unexpected error" : ex.getMessage());
         model.addAttribute("keyStores", keyStoreService.getKeyStores());
 
         return "index";
