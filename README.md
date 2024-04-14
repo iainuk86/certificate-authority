@@ -12,7 +12,7 @@ Once logged in, the user will see a green `Fetch Secrets` button as well as a ta
 The user is free to create, upload or delete any certificates they wish* in attempting to expose the confidential data.  
 Any certificate that is created using the CSR feature will be signed by the MajaTech CA.
 
-# 🛠️: Implementation 🛠️
+# 🛠️ Implementation 🛠️
 
 The core project is written in Java 21 and Spring Boot 3.X.  
 The Certificate Authority logic is implemented with the help of the Bouncy Castle library.  
